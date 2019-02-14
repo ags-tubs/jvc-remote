@@ -3,6 +3,7 @@
 import serial
 
 ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
+ser_cam = serial.Serial('/dev/ttyUSB1', 9600, parity=serial.PARITY_EVEN)
 
 gainTable = {
      64  : 0,
@@ -16,9 +17,20 @@ gainTable = {
 #    4  : 18
     }
 
+def readCam():
+    ser_cam.timeout=0.0035
+    camNotEmpty=True
+    while(camNotEmpty):
+        cam = ser_cam.read()
+        try:
+            print("cam: "+hex(ord(cam)))
+        except TypeError:
+            camNotEmpty=False
+
 while True:
     length = ord(ser.read())
-    print(hex(length))
+    print("ccu: "+hex(length))
+    readCam()
 
     if (length & 0x80):
         length = length & 0x0F
@@ -51,17 +63,26 @@ while True:
                 ser.read()
                 print("Done!")
             elif (cmd == 7):
-                print("Gain: %02idB" % gainTable[data])
+                try:
+                    print("Gain: %02idB" % gainTable[data])
+                except KeyError:
+                    print("Unknown Gain Value ?!?!")
             elif (cmd == 2):
                 if(data == 65):
                     print("autoiris: on")
                 if(data == 64):
                     print("autoiris: off")
+            elif (cmd == 3):
+                if(data == 79):
+                    print("Full Auto White: on")
+                if(data == 66):
+                    print("Full Auto White: off")
             else:
-                print(bin(packet[0]))
+                print(hex(packet[0]) + "Unknown Command ?!?!")
 
             #checksum
-            print((cmd + data) == packet[2])
+            print((cmd + data) == (packet[2] & 0x7F))
+        readCam()
         print("")
 
 
