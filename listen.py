@@ -6,9 +6,13 @@ ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
 ser_cam = serial.Serial('/dev/ttyUSB1', 9600, parity=serial.PARITY_EVEN)
 
 gainTable = {
-     64  : 0,
-     66  : 9,
-     68  : 18
+     64  : "0dB",
+     65  : "6dB",
+     66  : "9dB",
+     67  : "12dB",
+     68  : "18dB",
+     72  : "auto(?)",
+     74  : "3dB",
 #    0  : 0,
 #    10 : 3,
 #    1  : 6,
@@ -16,6 +20,16 @@ gainTable = {
 #    3  : 13,
 #    4  : 18
     }
+
+
+shutterTable = {
+    64 : "off",
+    66 : "1/120",
+    67 : "1/250",
+    68 : "1/500",
+    69 : "1/1000",
+    70 : "1/2000",
+}
 
 def readCam():
     ser_cam.timeout=0.0035
@@ -50,35 +64,114 @@ while True:
                 print("Red %i" % val)
             elif key == 39:
                 print("Blue %i" % val)
-            elif key == 64 and val == 487547:
-                print("Autoiris")
+            elif key == 64:
+                print("Autoiris manipulation: %i" % val)
+            else:
+                print("Unkown key: "+hex(key))
 
             #checksum
             print(((packet[0] + packet[1] + packet[2]) & 0x7F) == packet[3])
         elif length == 3:
             cmd = packet[1]
             data = (packet[0] & 0x7F)
-            if (cmd == 6):
-                print("Auto White")
-                ser.read()
-                print("Done!")
-            elif (cmd == 7):
-                try:
-                    print("Gain: %02idB" % gainTable[data])
-                except KeyError:
-                    print("Unknown Gain Value ?!?!")
+
+            if (cmd == 0):
+                if(data == 65):
+                    print("colorbars: on")
+                elif(data == 64):
+                    print("colorbars: off")
+                else:
+                    print("colorbars UNKNOWN?!?!")
+
+            elif (cmd == 1):
+                if(data == 65):
+                    print("Detail: on")
+                elif(data == 64):
+                    print("Detail: off")
+                else:
+                    print("Detail UNKNOWN?!?!")
+
             elif (cmd == 2):
                 if(data == 65):
                     print("autoiris: on")
-                if(data == 64):
+                elif(data == 64):
                     print("autoiris: off")
+                else:
+                    print("autoiris UNKNOWN?!?!")
+
             elif (cmd == 3):
-                if(data == 79):
+                if(data == 65):
+                    print("White Bal: Preset")
+                elif(data == 66):
+                    print("White Bal: A")
+                elif(data == 67):
+                    print("White Bal: B")
+                elif(data == 79):
                     print("Full Auto White: on")
+                else:
+                    print("White Bal UNKNOWN?!?!")
+
+            elif (cmd == 6):
+                print("Auto White")
+                ser.read()
+                print("Done!")
+
+            elif (cmd == 7):
+                try:
+                    print("Gain: "+gainTable[data])
+                except KeyError:
+                    print("Unknown Gain Value ?!?!")
+
+            elif (cmd == 9):
+                if(data == 64):
+                    print("Call: off")
+                elif(data == 65):
+                    print("Call: on")
+                else:
+                    print("intercom UNKNOWN?!?!")
+
+            elif (cmd == 12):
+                try:
+                    print("Shutter: " + shutterTable[data])
+                except KeyError:
+                    print("Shutter UNKNOWN?!?!")
+
+            elif (cmd == 15):
                 if(data == 66):
-                    print("Full Auto White: off")
+                    print("black compress: on")
+                elif(data == 65):
+                    print("black stretch: on")
+                elif(data == 64):
+                    print("black unmodified")
+                else:
+                    print("black compress UNKNOWN?!?!")
+
+            elif (cmd == 28):
+                if(data == 64):
+                    print("Auto Knee: off")
+                elif(data == 65):
+                    print("Auto Knee: on")
+                else:
+                    print("Auto Knee UNKNOWN?!?!")
+
+            elif (cmd == 74):
+                if(data == 64):
+                    print("DNR: off")
+                elif(data == 65):
+                    print("DNR: on")
+                else:
+                    print("DNR UNKNOWN?!?!")
+
+            elif (cmd == 77):
+                if(data == 64):
+                    print("Skin Detail: off")
+                elif(data == 65):
+                    print("Skin Detail: on")
+                else:
+                    print("Skin Detail UNKNOWN?!?!")
+
             else:
-                print(hex(packet[0]) + "Unknown Command ?!?!")
+                print(hex(packet[0]) + " Unknown Command ?!?!")
 
             #checksum
             print((cmd + data) == (packet[2] & 0x7F))
