@@ -3,7 +3,7 @@
 import serial
 
 ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
-ser_cam = serial.Serial('/dev/ttyUSB1', 9600, parity=serial.PARITY_EVEN)
+#ser_cam = serial.Serial('/dev/ttyUSB1', 9600, parity=serial.PARITY_EVEN)
 
 gainTable = {
      64  : "0dB",
@@ -44,7 +44,7 @@ def readCam():
 while True:
     length = ord(ser.read())
     print("ccu: "+hex(length))
-    readCam()
+#    readCam()
 
     if (length & 0x80):
         length = length & 0x0F
@@ -175,7 +175,7 @@ while True:
 
             #checksum
             print((cmd + data) == (packet[2] & 0x7F))
-        readCam()
+#        readCam()
         print("")
 
 
