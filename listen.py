@@ -47,34 +47,49 @@ shutterTable = {
 #            print("cam: "+cam)
 #        except TypeError:
 #            camNotEmpty=False
+def decodeCam(cam_byte, verbose=False):
+    if(cam_byte == "cam: F2"):
+        print("ACK; Unimplemented Feature")
+    elif(cam_byte == "cam: A0"):
+        if(verbose):
+            print("ACK")
+    else:
+        print(cam_byte)
 
 def readBytes(length):
     buff = []
+
     if(method=="stdin"):
-        try:
-            for x in range(0, int(length)):
-                buff.append(int("0x"+input(),0))
-        except EOFError:
-            print("reached file end; exiting");
-            exit()
+        for x in range(0, int(length)):
+            inp=input()
+            try:
+                buff.append(int("0x"+inp,0))
+            except EOFError:
+                print("reached file end; exiting");
+                exit()
+            except ValueError:
+                decodeCam(inp)
+                return readBytes(length)
+
+
     if(method=="serial"):
         bts = ser.read(length)
         for v in bts:
             buff += [ord(v)]
-    return buff
 
-#readBytes(2)
+    return buff
 
 while True:
     length = readBytes(1)[0]
-    print("ccu: "+hex(length))
+    #print("ccu: "+hex(length))
 #    readCam()
 
     if (int(length) & 0x80):
         length = length & 0x0F
 
         packet = readBytes(length)
-        print(np.array(packet))
+        #print(np.array(packet))
+
         if length == 4:
             key = (packet[0] << 4) | ((packet[1] & 0xF0) >> 4)
             val = ((packet[1] & 0x0F) << 8) | packet[2]
@@ -87,12 +102,13 @@ while True:
             elif key == 39:
                 print("Blue %i" % val)
             elif key == 64:
-                print("Autoiris manipulation: %i" % val)
+                print("Autoiris adj: %i" % val)
             else:
-                print("Unkown key: "+hex(key))
+                print("Unkown key "+hex(key)+": "+hex(val))
 
             #checksum
-            print(((packet[0] + packet[1] + packet[2]) & 0x7F) == packet[3])
+            if(((packet[0] + packet[1] + packet[2]) & 0x7F) != packet[3]):
+                print("checksum ERROR")
         elif length == 3:
             cmd = packet[1]
             data = (packet[0] & 0x7F)
@@ -193,9 +209,12 @@ while True:
                     print("Skin Detail UNKNOWN?!?!")
 
             else:
-                print(hex(packet[0]) + " Unknown Command ?!?!")
+                print("Unknown Command "+hex(packet[1])+": "+hex(packet[0]))
 
             #checksum
-            print((cmd + data) == (packet[2] & 0x7F))
+            if((packet[0] + packet[1]) & 0x7F != (packet[2])):
+                print("checksum ERROR")
+
 #        readCam()
-        print("")
+        decodeCam(input())
+        print('')
