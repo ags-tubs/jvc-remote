@@ -2,7 +2,12 @@
 # decode jvc ccu RM-P210 commands
 import serial
 
-ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
+#method="serial"
+method="stdin"
+
+if(method=="serial"):
+    ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
+
 #ser_cam = serial.Serial('/dev/ttyUSB1', 9600, parity=serial.PARITY_EVEN)
 
 gainTable = {
@@ -31,24 +36,43 @@ shutterTable = {
     70 : "1/2000",
 }
 
-def readCam():
-    ser_cam.timeout=0.0035
-    camNotEmpty=True
-    while(camNotEmpty):
-        cam = ser_cam.read()
+#def readCam():
+#    ser_cam.timeout=0.0035
+#    camNotEmpty=True
+#    while(camNotEmpty):
+#        cam = ser_cam.read()
+#        try:
+#            print("cam: "+cam)
+#        except TypeError:
+#            camNotEmpty=False
+
+def readBytes(length):
+    buff = []
+    if(method=="stdin"):
         try:
-            print("cam: "+hex(ord(cam)))
-        except TypeError:
-            camNotEmpty=False
+            for x in range(0, int(length)):
+                buff.append(int("0x"+input(),0))
+        except EOFError:
+            print("reached file end; exiting");
+            exit()
+    if(method=="serial"):
+        bts = ser.read(length)
+        for v in bts:
+            buff += [ord(v)]
+
+    return buff
+
+#readBytes(2)
 
 while True:
-    length = ord(ser.read())
+    length = readBytes(1)[0]
     print("ccu: "+hex(length))
 #    readCam()
 
-    if (length & 0x80):
+    if (int(length) & 0x80):
+
         length = length & 0x0F
-        buff = ser.read(length)
+        buff = readBytes(length)
         packet = []
         for v in buff:
             packet += [v]
@@ -113,8 +137,8 @@ while True:
 
             elif (cmd == 6):
                 print("Auto White")
-                ser.read()
-                print("Done!")
+                #ser.read()
+                #print("Done!")
 
             elif (cmd == 7):
                 try:
