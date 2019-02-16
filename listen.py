@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 # decode jvc ccu RM-P210 commands
 import serial
+import numpy as np
+np.set_printoptions(formatter={'int':hex})
 
 #method="serial"
 method="stdin"
@@ -59,7 +61,6 @@ def readBytes(length):
         bts = ser.read(length)
         for v in bts:
             buff += [ord(v)]
-
     return buff
 
 #readBytes(2)
@@ -70,13 +71,10 @@ while True:
 #    readCam()
 
     if (int(length) & 0x80):
-
         length = length & 0x0F
-        buff = readBytes(length)
-        packet = []
-        for v in buff:
-            packet += [v]
-        print(packet)
+
+        packet = readBytes(length)
+        print(np.array(packet))
         if length == 4:
             key = (packet[0] << 4) | ((packet[1] & 0xF0) >> 4)
             val = ((packet[1] & 0x0F) << 8) | packet[2]
@@ -201,5 +199,3 @@ while True:
             print((cmd + data) == (packet[2] & 0x7F))
 #        readCam()
         print("")
-
-
