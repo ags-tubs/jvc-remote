@@ -14,10 +14,10 @@ if(method=="serial"):
 
 def decodeCam(cam_byte, verbose=False):
     if(cam_byte == "cam: F2"):
-        print(" UNIPLM")
+        print(",UNIPLM")
     elif(cam_byte == "cam: A0"):
         if(verbose):
-            print(" IMPL")
+            print(",IMPL")
     else:
         print(cam_byte)
 
@@ -55,15 +55,18 @@ while True:
         if length == 4:
             key = (packet[0] << 4) | ((packet[1] & 0xF0) >> 4)
             val = ((packet[1] & 0x0F) << 8) | packet[2]
-            print("key "+hex(key)+": "+hex(val), end='')
+            #"cmd type","key","value","bitfield","cam response","topic"
+            print("key,"+"0x{:02x}".format(key)+","+"0x{:03x}".format(val)+",", end='')
 
             #checksum
             if(((packet[0] + packet[1] + packet[2]) & 0x7F) != packet[3]):
                 print("checksum ERROR")
         elif length == 3:
-            cmd = packet[1]
-            data = (packet[0] & 0x7F)
-            print("cmd "+"0x{:02x}".format(packet[1])+": "+"{:03d}".format(packet[0]), end = '')
+            cmd = packet[1];
+            bitfield = (packet[0] & 0xF0) >> 4
+            data = (packet[0] & 0x0F)
+            #"cmd type","key","value","bitfield","cam response","topic"
+            print("cmd,"+"0x{:02x}".format(cmd)+","+"0x{:02x}".format(data)+","+"0b{:04b}".format(bitfield), end = '')
 
             #checksum
             if((packet[0] + packet[1]) & 0x7F != (packet[2])):
