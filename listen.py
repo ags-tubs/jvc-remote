@@ -66,7 +66,7 @@ while True:
             bitfield = (packet[0] & 0xF0) >> 4
             data = (packet[0] & 0x0F)
             #"cmd type","key","value","bitfield","cam response","topic"
-            print("cmd,"+"0x{:02x}".format(cmd)+","+"0x{:02x}".format(data)+","+"0b{:04b}".format(bitfield), end = '')
+            print("cmd,"+"0x{:02x}".format(cmd)+","+"0x{:01x}".format(data)+","+"0b{:04b}".format(bitfield), end = '')
 
             #checksum
             if((packet[0] + packet[1]) & 0x7F != (packet[2])):
