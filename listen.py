@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # decode jvc ccu RM-P210 commands
 import serial
+import csv
 import numpy as np
 np.set_printoptions(formatter={'int':hex})
 
@@ -12,31 +13,17 @@ if(method=="serial"):
 
 #ser_cam = serial.Serial('/dev/ttyUSB1', 9600, parity=serial.PARITY_EVEN)
 
-gainTable = {
-     64  : "0dB",
-     65  : "6dB",
-     66  : "9dB",
-     67  : "12dB",
-     68  : "18dB",
-     72  : "auto(?)",
-     74  : "3dB",
-#    0  : 0,
-#    10 : 3,
-#    1  : 6,
-#    2  : 9,
-#    3  : 13,
-#    4  : 18
-    }
+key_id = []
+cmd_id = []
 
+with open('kommandos.csv') as csvDataFile:
+    csvReader = csv.reader(csvDataFile)
+    for row in csvReader:
+        if(row[0]=="key"):
+            key_id.append(row)
+        if(row[0]=="cmd"):
+            cmd_id.append(row)
 
-shutterTable = {
-    64 : "off",
-    66 : "1/120",
-    67 : "1/250",
-    68 : "1/500",
-    69 : "1/1000",
-    70 : "1/2000",
-}
 
 #def readCam():
 #    ser_cam.timeout=0.0035
@@ -49,10 +36,12 @@ shutterTable = {
 #            camNotEmpty=False
 def decodeCam(cam_byte, verbose=False):
     if(cam_byte == "cam: F2"):
-        print("ACK; Unimplemented Feature")
+        print("\tACK; UNIPLM")
     elif(cam_byte == "cam: A0"):
         if(verbose):
-            print("ACK")
+            print("\tACK")
+        else:
+            print()
     else:
         print(cam_byte)
 
@@ -61,8 +50,8 @@ def readBytes(length):
 
     if(method=="stdin"):
         for x in range(0, int(length)):
-            inp=input()
             try:
+                inp=input()
                 buff.append(int("0x"+inp,0))
             except EOFError:
                 print("reached file end; exiting");
@@ -91,130 +80,83 @@ while True:
         #print(np.array(packet))
 
         if length == 4:
-            key = (packet[0] << 4) | ((packet[1] & 0xF0) >> 4)
-            val = ((packet[1] & 0x0F) << 8) | packet[2]
-            if key == 0:
-                print("Iris: %i" % val)
-            elif key == 6:
-                print("Black %i" % val)
-            elif key == 38:
-                print("Red %i" % val)
-            elif key == 39:
-                print("Blue %i" % val)
-            elif key == 64:
-                print("Autoiris adj: %i" % val)
-            else:
-                print("Unkown key "+hex(key)+": "+hex(val))
-
-            #checksum
             if(((packet[0] + packet[1] + packet[2]) & 0x7F) != packet[3]):
                 print("checksum ERROR")
-        elif length == 3:
-            cmd = packet[1]
-            data = (packet[0] & 0x7F)
-
-            if (cmd == 0):
-                if(data == 65):
-                    print("colorbars: on")
-                elif(data == 64):
-                    print("colorbars: off")
-                else:
-                    print("colorbars UNKNOWN?!?!")
-
-            elif (cmd == 1):
-                if(data == 65):
-                    print("Detail: on")
-                elif(data == 64):
-                    print("Detail: off")
-                else:
-                    print("Detail UNKNOWN?!?!")
-
-            elif (cmd == 2):
-                if(data == 65):
-                    print("autoiris: on")
-                elif(data == 64):
-                    print("autoiris: off")
-                else:
-                    print("autoiris UNKNOWN?!?!")
-
-            elif (cmd == 3):
-                if(data == 65):
-                    print("White Bal: Preset")
-                elif(data == 66):
-                    print("White Bal: A")
-                elif(data == 67):
-                    print("White Bal: B")
-                elif(data == 79):
-                    print("Full Auto White: on")
-                else:
-                    print("White Bal UNKNOWN?!?!")
-
-            elif (cmd == 6):
-                print("Auto White")
-                #ser.read()
-                #print("Done!")
-
-            elif (cmd == 7):
-                try:
-                    print("Gain: "+gainTable[data])
-                except KeyError:
-                    print("Unknown Gain Value ?!?!")
-
-            elif (cmd == 9):
-                if(data == 64):
-                    print("Call: off")
-                elif(data == 65):
-                    print("Call: on")
-                else:
-                    print("intercom UNKNOWN?!?!")
-
-            elif (cmd == 12):
-                try:
-                    print("Shutter: " + shutterTable[data])
-                except KeyError:
-                    print("Shutter UNKNOWN?!?!")
-
-            elif (cmd == 15):
-                if(data == 66):
-                    print("black compress: on")
-                elif(data == 65):
-                    print("black stretch: on")
-                elif(data == 64):
-                    print("black unmodified")
-                else:
-                    print("black compress UNKNOWN?!?!")
-
-            elif (cmd == 28):
-                if(data == 64):
-                    print("Auto Knee: off")
-                elif(data == 65):
-                    print("Auto Knee: on")
-                else:
-                    print("Auto Knee UNKNOWN?!?!")
-
-            elif (cmd == 74):
-                if(data == 64):
-                    print("DNR: off")
-                elif(data == 65):
-                    print("DNR: on")
-                else:
-                    print("DNR UNKNOWN?!?!")
-
-            elif (cmd == 77):
-                if(data == 64):
-                    print("Skin Detail: off")
-                elif(data == 65):
-                    print("Skin Detail: on")
-                else:
-                    print("Skin Detail UNKNOWN?!?!")
-
             else:
-                print("Unknown Command "+hex(packet[1])+": "+hex(packet[0]))
+                key = (packet[0] << 4) | ((packet[1] & 0xF0) >> 4)
+                val = ((packet[1] & 0x0F) << 8) | packet[2]
 
-            #checksum
+                found = False
+
+                for x in key_id:
+                    if((int(x[1],0)==key) and (int(x[1],0)==val) and not found):
+                        found=True
+                        if(x[5]==""):
+                            topic="ID \'"+x[1]+"\'"
+                        else:
+                            topic=x[5]
+
+                        if(x[6]==""):
+                            setting="\'"+x[2]+"\'"
+                        else:
+                            setting=x[6]
+
+                        print("set "+topic+" to "+setting+"\t", end='')
+                        break
+
+                if(not found):
+                    for x in key_id:
+                        if(int(x[1],0)==key and not found):
+                            found=True
+                            if(x[5]==""):
+                                topic="ID \'"+x[1]+"\'"
+                            else:
+                                topic=x[5]
+
+                            print("set "+topic+" to \'"+x[2]+"\'", end='')
+                            break
+
+                if(not found):
+                    print("set ID '"+x[1]+"' to \'"+x[2]+"\'\t", end='\t')
+
+        elif length == 3:
             if((packet[0] + packet[1]) & 0x7F != (packet[2])):
                 print("checksum ERROR")
+            else:
+                cmd = packet[1]
+                data = (packet[0] & 0x0F)
 
-#        readCam()
-        decodeCam(input())
-        print('')
+                found = False
+
+                for x in cmd_id:
+                    if((int(x[1],0)==cmd) and (int(x[1],0)==data) and not found):
+                        found=True
+                        if(x[5]==""):
+                            topic="ID \'"+x[1]+"\'"
+                        else:
+                            topic=x[5]
+
+                        if(x[6]==""):
+                            setting="\'"+x[2]+"\'"
+                        else:
+                            setting=x[6]
+
+                        print("set "+topic+" to "+setting+"\t", end='')
+                        break
+
+                if(not found):
+                    for x in cmd_id:
+                        if(int(x[1],0)==cmd and not found):
+                            found=True
+                            if(x[5]==""):
+                                topic="ID \'"+x[1]+"\'"
+                            else:
+                                topic=x[5]
+
+                            print("set "+topic+" to \'"+x[2]+"\'"+"\t", end='')
+                            break
+
+                if(not found):
+                    print("set ID '"+x[1]+"' to \'"+x[2]+"\'"+"\t", end='')
+
+    decodeCam(input())
