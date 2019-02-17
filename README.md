@@ -15,36 +15,40 @@ Protokoll
 Signallevel: 3.3V<br />
 Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
 
-### Syntax ###
+### Protocol Flow ###
 
+#### Typical Sequence ####
 <table >
 	<thead>
 	<tr >
-		<th  colspan="5">  Packet Syntax                                          </th>
+		<th  colspan="5"> Normal CCU to CAM flow </th>
 	</tr>
 	</thead>
 	<tr >
-		<th >Richtung (von OCP gesehen) </th>
+		<th > Direction (seen from OCP) </th>
         <td >  TX       </td>
         <td >  RX  </td>
         <td >  TX   </td>
         <td >  RX  </td>
 	</tr>
 	<tr >
-		<th >Länge (in Byte)            </th>
+		<th > length (in Byte)            </th>
         <td >  1        </td>
         <td >  1   </td>
         <td >  3-4  </td>
         <td >  1   </td>
 	</tr>
 	<tr >
-		<th >Funktion                   </th>
+		<th > Purpose </th>
         <td > Startbyte </td>
         <td > ACK  </td>
-        <td > Daten </td>
+        <td > Data </td>
         <td > ACK  </td>
 	</tr>
 </table>
+Note: there is also the possibility to do CAM to CCU communication, <br />
+which seems to be requested by a special char (0x90)
+
 
 <table >
 	<thead>
@@ -54,20 +58,20 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
 	</thead>
 	<tr >
 		<th > Bit      </th>
-<td >  0        </td>
-<td >  1  </td>
-<td >  2  </td>
-<td >  3  </td>
-<td >  4  </td>
-<td >  5  </td>
-<td >  6  </td>
-<td >  7  </td>
+        <td >  0        </td>
+        <td >  1  </td>
+        <td >  2  </td>
+        <td >  3  </td>
+        <td >  4  </td>
+        <td >  5  </td>
+        <td >  6  </td>
+        <td >  7  </td>
 	</tr>
 	<tr >
-		<th > Funktion </th>
-<td >  immer 1  </td>
-<td  colspan="4">  0           </td>
-<td  colspan="3">  Länge der Daten    </td>
+		<th > Purpose </th>
+        <td >  always 1 </td>
+        <td colspan="4"> 0 </td>
+        <td colspan="3"> number of data bytes </td>
 	</tr>
 </table>
 
@@ -154,10 +158,10 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
         <td >  7  </td>
 	</tr>
 	<tr >
-		<th > Funktion </th>
-        <td  colspan="12">  Funktion  </td>
-        <td  colspan="12">  Wert  </td>
-        <td  colspan="8">  Prüfsumme  </td>
+		<th > Purpose </th>
+        <td  colspan="12"> key </td>
+        <td  colspan="12"> value </td>
+        <td  colspan="8"> checksum </td>
 	</tr>
 </table>
 
@@ -167,7 +171,7 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
 <table >
 	<thead>
 	<tr >
-		<th  colspan="25">  Daten    </th>
+		<th  colspan="25"> Data </th>
 	</tr>
 	</thead>
 	<tr >
@@ -204,11 +208,11 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
         <td >  7  </td>
 	</tr>
 	<tr >
-		<th > Funktion </th>
-        <td  colspan="8">  Funktion  </td>
+		<th > Purpose </th>
+        <td  colspan="8">  Command  </td>
         <td  colspan="4">  Bitflags  </td>
-        <td  colspan="4">  Einstellungswert </td>
-        <td  colspan="8">  Prüfsumme  </td>
+        <td  colspan="4">  Set Value </td>
+        <td  colspan="8">  Checksum  </td>
 	</tr>
 </table>
 
