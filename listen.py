@@ -16,7 +16,7 @@ if(method=="serial"):
 key_id = []
 cmd_id = []
 
-with open('kommandos.csv') as csvDataFile:
+with open('cmds.csv') as csvDataFile:
     csvReader = csv.reader(csvDataFile)
     for row in csvReader:
         if(row[0]=="key"):
