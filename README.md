@@ -224,12 +224,37 @@ but sometimes 0x6
 ### Funktionen ###
 
 from cmds.csv
-
+####  cmd type ####
 cmd => 3 byte<br />
 key => 4 byte
 
-|cmd type|key|value|bitfield|cam response|topic|setting|
-|--------|---|-----|--------|------------|-----|-------|
+#### setting ####
+hex value for a specific setting (topic) <br />
+must be treated differently for key and cmd
+
+#### value ####
+value to be set for the setting
+
+#### bitfield ####
+currently we are thinking these bits represet specific flags<br />
+applies only to 3 byte commands; also see the section about 3 byte data
+
+#### cam response ####
+Response byte sent by the Camera,<br />
+tells if the requested feature is available in the specific model.<br />
+The following table was created by listening to communication with a JVC GM-HY251
+//TODO: camera model?
+
+#### topic ####
+human readable representation of the setting-id<br />
+for example cmd setting 0x07 is understood as gain control
+
+#### value-representation ####
+human readable representation of the values a setting can have.<br />
+such as ON, OFF, incremental values, specific operation modes, ...
+
+|cmd type|setting|value|bitfield|cam response|topic|value-representation|
+|--------|-------|-----|--------|------------|-----|--------------------|
 |cmd|0x00|0x0|0b0100|IMPL|Colorbars||
 ||||||||
 |cmd|0x01|0x0|0b0100|IMPL|Detail||
