@@ -5,8 +5,8 @@ import csv
 import numpy as np
 np.set_printoptions(formatter={'int':hex})
 
-#method="serial"
-method="stdin"
+method="serial"
+#method="stdin"
 
 if(method=="serial"):
     ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
@@ -64,7 +64,7 @@ def readBytes(length):
     if(method=="serial"):
         bts = ser.read(length)
         for v in bts:
-            buff += [ord(v)]
+            buff += [v]
 
     return buff
 
@@ -77,7 +77,7 @@ while True:
         length = length & 0x0F
 
         packet = readBytes(length)
-        #print(np.array(packet))
+#        print(np.array(packet))
 
         if length == 4:
             if(((packet[0] + packet[1] + packet[2]) & 0x7F) != packet[3]):
@@ -113,11 +113,13 @@ while True:
                             else:
                                 topic=x[5]
 
-                            print("set "+topic+" to \'"+x[2]+"\'", end='')
+                            print("set "+topic+" to \'"+hex(val)+"\'", end='')
                             break
 
                 if(not found):
-                    print("set ID '"+x[1]+"' to \'"+x[2]+"\'\t", end='\t')
+                    print("set ID '"+hex(key)+"' to \'"+hex(val)+"\'\t", end='\t')
+                if(method=="serial"):
+                    print()
 
         elif length == 3:
             if((packet[0] + packet[1]) & 0x7F != (packet[2])):
@@ -129,7 +131,7 @@ while True:
                 found = False
 
                 for x in cmd_id:
-                    if((int(x[1],0)==cmd) and (int(x[1],0)==data) and not found):
+                    if((int(x[1],0)==cmd) and (int(x[2],0)==data) and not found):
                         found=True
                         if(x[5]==""):
                             topic="ID \'"+x[1]+"\'"
@@ -153,10 +155,14 @@ while True:
                             else:
                                 topic=x[5]
 
-                            print("set "+topic+" to \'"+x[2]+"\'"+"\t", end='')
+                            print("set "+topic+" to \'"+hex(data)+"\'"+"\t", end='')
                             break
 
                 if(not found):
                     print("set ID '"+x[1]+"' to \'"+x[2]+"\'"+"\t", end='')
 
-    decodeCam(input())
+                if(method=="serial"):
+                    print()
+
+    if(method=="stdin"):
+        decodeCam(input())
