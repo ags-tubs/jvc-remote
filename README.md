@@ -71,9 +71,10 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
 	</tr>
 </table>
 
+##### Speculative interpretation of ACK byte: #####
 <table>
    <tr>
-    <th colspan="9">Startbyte</th>
+    <th colspan="9">ACK byte</th>
    </tr>
    <tr>
     <th>Bit</th>
@@ -88,12 +89,20 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
   </tr>
   <tr>
     <th>Funktion</th>
-    <td>immer 1</td>
-    <td colspan="4">0</td>
-    <td colspan="3">Länge der Daten</td>
+    <td> ACK</td>
+    <td> UNIMPL </td>
+    <td> ACK </td>
+    <td> UNIMPL </td>
+    <td colspan="2">0</td>
+    <td> UNIMPL </td>
+    <td> 0 </td>
   </tr>
 </table>
 
+0xA0 => transmission understood, everything OK<br />
+0xF2 => transmission understood, but Feature not implemented
+
+##### Data bytes: #####
 4 Byte:
 
 <table >
@@ -197,38 +206,19 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
 	<tr >
 		<th > Funktion </th>
         <td  colspan="8">  Funktion  </td>
-        <td  colspan="8">  Wert  </td>
+        <td  colspan="4">  Bitflags  </td>
+        <td  colspan="4">  Einstellungswert </td>
         <td  colspan="8">  Prüfsumme  </td>
 	</tr>
 </table>
+
+Flags are mostly set to 0x4, <br />
+but sometimes 0x6
 
                                                                        
 
 ### Funktionen ###
 
-|  Funktion      | Packetlänge   | Command-Byte   | Wertebereich
-|  ------------- | ------------- | -------------- | ---------------------------------------------------------------------------------------------- |
-|  Iris          | 4             | 0              |                                                                                                |
-|  Black         | 4             | 6              |                                                                                                |
-|  Red           | 4             | 38             |                                                                                                |
-|  Blue          | 4             | 39             |                                                                                                |
-|  Autoiris      | 4             | 64             | 487547                                                                                         |
-|  Auto White    | 3             | 6              |                                                                                                |
-|  Colorbars     | 3             | 0              |                                                                                                |
-|  Detail        | 3             | 1              |                                                                                                |
-|  Autoiris      | 3             | 2              |                                                                                                |
-|  White Bal     | 3             | 3              | 1: Preset; 2: A; 3: B 15: full auto                                                            |
-|  Auto White    | 3             | 6              |                                                                                                |
-|  Gain          | 3             | 7              | 0 : 0dB, 10 : 3dB, 1 : 6dB, 2 : 9dB, 3 : 13dB, 4 : 18dB                                        |
-|  Call          | 3             | 9              |                                                                                                |
-|  Shutter       | 3             | 12             | 64 : \"off\", 66 : \"1/120\", 67 : \"1/250\", 68 : \"1/500\", 69 : \"1/1000\", 70 : 1/2000\"   |
-|  black mod     | 3             | 15             | 0:unmod, 1: stretch, 2: compress                                                               |
-|  Auto Knee     | 3             | 28             |                                                                                                |
-|  DNR           | 3             | 74             |                                                                                                |
-|  Skin Detail   | 3             | 77             |                                                                                                |
-                                                                                                                                                |
-
-### Sniffed Commands ###
 from cmds.csv
 
 cmd => 3 byte<br />
