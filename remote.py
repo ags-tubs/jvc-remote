@@ -1,36 +1,136 @@
 #! /usr/bin/env python3
 # send jvc ccu RM-P210 commands
 import serial
+import csv
 import time
+
+key_id = []
+cmd_id = []
+
+with open('cmds.csv') as csvDataFile:
+    csvReader = csv.reader(csvDataFile)
+    for row in csvReader:
+        if(row[0]=="key"):
+            key_id.append(row)
+        if(row[0]=="cmd"):
+            cmd_id.append(row)
 
 ser = serial.Serial('/dev/ttyUSB0', 9600, parity=serial.PARITY_EVEN)
 ser.timeout=0.1
+
+await_cam = False
 
 def waitCam():
     ack=False
     while(not ack):
         try:
             r = ord(ser.read())
+#            print("cam: "+hex(r))
             ack=True
         except TypeError:
             print("waiting for CAM...")
             ack=False
- 
-    if(r & 0x02):
-        print("cam accept")
-    else:
-        print("cam reject")
 
-def sendCmd(cmd):
+    #if(r == 0xA0):
+    #    print("ACK")
+    #else:
+    #    print("cam reject")
+
+def SpecialTransmitt(data):
+    ser.flushInput()
+    print("#### Special Transmit beginn ####")
+    tx=0x90|data
+    ser.write(b'\x90')
+    print("write: 0x90")
+    waitCam()
+    waitCam()
+    ser.write(b'\xA0')
+    print("write: 0xA0")
+    waitCam()
+    waitCam()
+    waitCam()
+    ser.write(b'\xA0')
+    print("write: 0xA0")
+
+    waitCam()
+    ser.write(b'\xA0')
+    print("write: 0xA0")
+    waitCam()
+    waitCam()
+    waitCam()
+    ser.write(b'\xA0')
+    print("write: 0xA0")
+
+    print("#### Special Transmit end ####")
+
+def sendCmd(cmd, data, special=False):
+    print("sendCmd "+str(cmd)+" = "+str(data))
+
+    if(type(cmd) is str):
+        found = False
+        for x in cmd_id:
+            if(x[5]==cmd):
+                found = True
+                cmd=int(x[1],0)
+        if( not found ):
+            print("unknown string: \""+cmd+"\"")
+            exit()
+
+    if(type(data) is str):
+        found = False
+        for x in cmd_id:
+            if(int(x[1],0)==cmd and x[6]==data):
+                found = True
+                data=int(x[2],0)
+        if( not found ):
+            print("unknown string: \""+data+"\"")
+            exit()
+
+
+    tx=[data|0x40,cmd,0]
+    if(special):
+        tx[0]=tx[0]|0x2
+    tx[2]=(tx[0]+tx[1])&0x7F
+
     ser.write(b'\x83')
+    #time.sleep(0.003)
     waitCam()
-    ser.write(cmd)
+    ser.write(tx)
+    #time.sleep(0.01)
     waitCam()
 
-def sendVal(cmd):
+def sendKey(key, val):
+    print("sendKey "+str(key)+" = "+str(val))
+    if(type(key) is str):
+        found = False
+        for x in key_id:
+            if(x[5]==key):
+                found = True
+                key=int(x[1],0)
+        if( not found ):
+            print("unknown string: \""+key+"\"")
+            exit()
+
+    if(type(val) is str):
+        found = False
+        for x in key_id:
+            if(int(x[1],0)==key and x[6]==val):
+                found = True
+                val=int(x[2],0)
+        if( not found ):
+            print("unknown string: \""+val+"\"")
+            exit()
+
+    #key = (packet[0] << 4) | ((packet[1] & 0xF0) >> 4)
+    #val = ((packet[1] & 0x0F) << 8) | packet[2]
+    tx = [ ((key&0xFF0) >> 4), ((key&0xF)<<4)|((val&0xF00)>>8), (val&0xFF),  0 ]
+    tx[3]=(tx[0]+tx[1]+tx[2])&0x7F
+
     ser.write(b'\x84')
+    #time.sleep(0.003)
     waitCam()
-    ser.write(cmd)
+    ser.write(tx)
+    #time.sleep(0.01)
     waitCam()
 
 connected=False
@@ -44,123 +144,233 @@ while(not connected):
     else:
         print("waiting")
     time.sleep(0.8)
-time.sleep(1)
 
-sendCmd(b'\x41\x7D\x3E')
-sendCmd(b'\x40\x00\x40')
-sendCmd(b'\x41\x51\x12')
-sendCmd(b'\x42\x03\x45')
-sendCmd(b'\x40\x02\x42')
-sendVal(b'\x00\x06\x08\x0E')
-sendCmd(b'\x41\x02\x43')
-sendVal(b'\x04\x06\x08\x12')
-sendCmd(b'\x40\x02\x42')
-sendCmd(b'\x61\x06\x67')
-sendCmd(b'\x41\x03\x44')
-sendCmd(b'\x40\x0C\x4C')
-sendCmd(b'\x41\x0C\x4D')
-sendCmd(b'\x42\x0C\x4E')
-sendCmd(b'\x43\x0C\x4F')
-sendCmd(b'\x44\x0C\x50')
-sendCmd(b'\x45\x0C\x51')
-sendCmd(b'\x46\x0C\x52')
-sendCmd(b'\x4F\x0C\x5B')
-sendVal(b'\x05\x62\x6E\x55')
-sendCmd(b'\x40\x0C\x4C')
-sendVal(b'\x00\x63\x14\x77')
-sendCmd(b'\x60\x06\x66')
-sendCmd(b'\x40\x03\x43')
-sendCmd(b'\x41\x03\x44')
-sendCmd(b'\x42\x03\x45')
-sendCmd(b'\x43\x03\x46')
-sendCmd(b'\x4F\x03\x52')
-sendCmd(b'\x42\x03\x45')
-sendVal(b'\x02\x63\x28\x0D')
-sendVal(b'\x02\x72\x30\x24')
-sendCmd(b'\x43\x03\x46')
-sendVal(b'\x02\x64\x04\x6A')
-sendVal(b'\x02\x74\x1C\x12')
-sendCmd(b'\x40\x03\x43')
-sendVal(b'\x00\x23\x3C\x5F')
-sendVal(b'\x00\x33\x68\x1B')
-sendCmd(b'\x41\x03\x44')
-sendCmd(b'\x40\x07\x47')
-sendCmd(b'\x41\x07\x48')
-sendCmd(b'\x42\x07\x49')
-sendCmd(b'\x43\x07\x4A')
-sendCmd(b'\x44\x07\x4B')
-sendCmd(b'\x45\x07\x4C')
-sendCmd(b'\x46\x07\x4D')
-sendCmd(b'\x48\x07\x4F')
-sendCmd(b'\x4A\x07\x51')
-sendCmd(b'\x4E\x07\x55')
-sendVal(b'\x07\x48\x01\x50')
-sendCmd(b'\x41\x51\x12')
-sendCmd(b'\x40\x51\x11')
-sendCmd(b'\x40\x07\x47')
-sendCmd(b'\x41\x08\x49')
-sendCmd(b'\x41\x53\x14')
-sendCmd(b'\x40\x08\x48')
-sendCmd(b'\x40\x53\x13')
-sendCmd(b'\x41\x09\x4A')
-sendCmd(b'\x40\x09\x49')
-sendCmd(b'\x41\x0F\x50')
-sendCmd(b'\x42\x0F\x51')
-sendCmd(b'\x40\x0F\x4F')
-sendCmd(b'\x40\x4B\x0B')
-sendCmd(b'\x42\x4B\x0D')
-sendCmd(b'\x4F\x4B\x1A')
-sendCmd(b'\x41\x4B\x0C')
-sendCmd(b'\x40\x4C\x0C')
-sendCmd(b'\x42\x4C\x0E')
-sendCmd(b'\x4F\x4C\x1B')
-sendCmd(b'\x41\x4C\x0D')
-sendCmd(b'\x41\x4F\x10')
-sendCmd(b'\x42\x4F\x11')
-sendCmd(b'\x40\x4F\x0F')
-sendCmd(b'\x41\x1B\x5C')
-sendCmd(b'\x40\x1B\x5B')
-sendVal(b'\x01\x25\x30\x56')
-sendCmd(b'\x40\x01\x41')
-sendVal(b'\x01\x44\x00\x45')
-sendVal(b'\x01\x64\x00\x65')
-sendCmd(b'\x41\x4C\x0D')
-sendCmd(b'\x40\x4D\x0D')
-sendCmd(b'\x40\x1C\x5C')
-sendVal(b'\x03\x26\x04\x2D')
-sendCmd(b'\x41\x4E\x0F')
-sendCmd(b'\x40\x1B\x5B')
-sendCmd(b'\x40\x1D\x5D')
-sendVal(b'\x03\x61\x14\x78')
-sendCmd(b'\x40\x0F\x4F')
-sendCmd(b'\x40\x4F\x0F')
-sendCmd(b'\x40\x4A\x0A')
-sendCmd(b'\x41\x4B\x0C')
-sendCmd(b'\x40\x52\x12')
-sendVal(b'\x0F\x3F\x7C\x4A')
-sendVal(b'\x0F\x20\x08\x37')
-sendVal(b'\x0F\x20\x0C\x3B')
-sendVal(b'\x0F\x28\x0C\x43')
-sendVal(b'\x0F\x30\x0C\x4B')
-sendCmd(b'\x40\x07\x47')
-sendCmd(b'\x40\x00\x40')
-sendCmd(b'\x40\x50\x10')
-ser.write(b'\x90')
-waitCam()
-sendCmd(b'\x40\x09\x49')
-sendCmd(b'\x40\x07\x47')
-sendCmd(b'\x40\x0C\x4C')
-sendCmd(b'\x40\x53\x13')
-sendCmd(b'\x40\x08\x48')
-sendCmd(b'\x60\x0B\x6B')
+sendCmd(0x7d, 0x1)
 
-time.sleep(1)
+sendCmd("Colorbars", 0x0)
 
-#sendCmd(b'\x41\x02\x43')
-sendCmd(b'\x41\x00\x41')
+sendCmd(0x51, 0x1)	#ACK UNIPLM
+
+sendCmd("White Bal", "A")
+
+sendCmd("Autoiris", 0x0)
+
+sendKey("Iris", 0x340)
+
+sendCmd("Autoiris", 0x1)
+
+sendKey("Autoiris", 0x340)
+
+sendCmd("Autoiris", 0x1)
+
+sendCmd("Auto White", 0x1,True)#request special transmission
 
 
+sendCmd("White Bal", "Preset")
 
+sendCmd("Shutter", "off")
 
+sendCmd("Shutter", 0x1)	#ACK UNIPLM
 
-#ser.write(b'\x80\x80\xA0\x83\x41\x7D\x3E\x83\x40\x00\x40\x83\x41\x51\x12\x83\x42\x03\x45\x83\x40\x02\x42\x84\x00\x06\x08\x0E\x83\x41\x02\x43\x84\x04\x06\x08\x12\x83\x40\x02\x42\x83\x61\x06\x67\x83\x41\x03\x44\x83\x40\x0C\x4C\x83\x41\x0C\x4D\x83\x42\x0C\x4E\x83\x43\x0C\x4F\x83\x44\x0C\x50\x83\x45\x0C\x51\x83\x46\x0C\x52\x83\x4F\x0C\x5B\x84\x05\x62\x6E\x55\x83\x40\x0C\x4C\x84\x00\x63\x14\x77\x83\x60\x06\x66\x83\x40\x03\x43\x83\x41\x03\x44\x83\x42\x03\x45\x83\x43\x03\x46\x83\x4F\x03\x52\x83\x42\x03\x45\x84\x02\x63\x28\x0D\x84\x02\x72\x30\x24\x83\x43\x03\x46\x84\x02\x64\x04\x6A\x84\x02\x74\x1C\x12\x83\x40\x03\x43\x84\x00\x23\x3C\x5F\x84\x00\x33\x68\x1B\x83\x41\x03\x44\x83\x40\x07\x47\x83\x41\x07\x48\x83\x42\x07\x49\x83\x43\x07\x4A\x83\x44\x07\x4B\x83\x45\x07\x4C\x83\x46\x07\x4D\x83\x48\x07\x4F\x83\x4A\x07\x51\x83\x4E\x07\x55\x84\x07\x48\x01\x50\x83\x41\x51\x12\x83\x40\x51\x11\x83\x40\x07\x47\x83\x41\x08\x49\x83\x41\x53\x14\x83\x40\x08\x48\x83\x40\x53\x13\x83\x41\x09\x4A\x83\x40\x09\x49\x83\x41\x0F\x50\x83\x42\x0F\x51\x83\x40\x0F\x4F\x83\x40\x4B\x0B\x83\x42\x4B\x0D\x83\x4F\x4B\x1A\x83\x41\x4B\x0C\x83\x40\x4C\x0C\x83\x42\x4C\x0E\x83\x4F\x4C\x1B\x83\x41\x4C\x0D\x83\x41\x4F\x10\x83\x42\x4F\x11\x83\x40\x4F\x0F\x83\x41\x1B\x5C\x83\x40\x1B\x5B\x84\x01\x25\x30\x56\x83\x40\x01\x41\x84\x01\x44\x00\x45\x84\x01\x64\x00\x65\x83\x41\x4C\x0D\x83\x40\x4D\x0D\x83\x40\x1C\x5C\x84\x03\x26\x04\x2D\x83\x41\x4E\x0F\x83\x40\x1B\x5B\x83\x40\x1D\x5D\x84\x03\x61\x14\x78\x83\x40\x0F\x4F\x83\x40\x4F\x0F\x83\x40\x4A\x0A\x83\x41\x4B\x0C\x83\x40\x52\x12\x84\x0F\x3F\x7C\x4A\x84\x0F\x20\x08\x37\x84\x0F\x20\x0C\x3B\x84\x0F\x28\x0C\x43\x84\x0F\x30\x0C\x4B\x83\x40\x07\x47\x83\x40\x00\x40\x83\x40\x50\x10\x90\x83\x40\x09\x49\xA0\xA0\x83\x40\x07\x47\xA0\xA0\x83\x40\x0C\x4C\x83\x40\x53\x13\x83\x40\x08\x48\x83\x60\x0B\x6B\x83\x41\x00\x41\x00')
+sendCmd("Shutter", "1/120")
+
+sendCmd("Shutter", "1/250")
+
+sendCmd("Shutter", "1/500")
+
+sendCmd("Shutter", "1/1000")
+
+sendCmd("Shutter", "1/2000")
+
+sendCmd("Shutter", 0xf)	#ACK UNIPLM
+
+sendKey(0x56, 0x26e)	#ACK UNIPLM
+
+sendCmd("Shutter", "off")
+
+sendKey("Black", 0x310)
+
+sendCmd("Auto White", 0x0,True)#request special transmission
+	#ACK UNIPLM
+
+sendCmd("White Bal", 0x0)
+
+sendCmd("White Bal", "Preset")
+
+sendCmd("White Bal", "A")
+
+sendCmd("White Bal", "B")
+
+sendCmd("White Bal", "full auto")
+
+sendCmd("White Bal", "A")
+
+sendKey("Red", 0x328)
+
+sendKey("Blue", 0x230)
+
+sendCmd("White Bal", "B")
+
+sendKey("Red", 0x404)
+
+sendKey("Blue", 0x41c)
+
+sendCmd("White Bal", 0x0)
+
+sendKey(0x02, 0x33c)
+
+sendKey(0x03, 0x368)
+
+sendCmd("White Bal", "Preset")
+
+sendCmd("Gain", "0dB")
+
+sendCmd("Gain", "6dB")
+
+sendCmd("Gain", "9dB")
+
+sendCmd("Gain", "12dB")
+
+sendCmd("Gain", "18dB")
+
+sendCmd("Gain", 0x5)	#ACK UNIPLM
+
+sendCmd("Gain", 0x6)	#ACK UNIPLM
+
+sendCmd("Gain", 0x8)
+
+sendCmd("Gain", "3dB")
+
+sendCmd("Gain", 0xe)	#ACK UNIPLM
+
+sendKey(0x74, 0x801)	#ACK UNIPLM
+
+sendCmd(0x51, 0x1)	#ACK UNIPLM
+
+sendCmd(0x51, 0x0)	#ACK UNIPLM
+
+sendCmd("Gain", "0dB")
+
+sendCmd(0x08, 0x1)
+
+sendCmd(0x53, 0x1)
+
+sendCmd(0x08, 0x0)
+
+sendCmd(0x53, 0x0)
+
+sendCmd("Call", 0x1)
+
+sendCmd("Call", 0x0)
+
+sendCmd("black mod", "stretch")
+
+sendCmd("black mod", "compress")
+
+sendCmd("black mod", "unmod")
+
+sendCmd(0x4b, 0x0)	#ACK UNIPLM
+
+sendCmd(0x4b, 0x2)	#ACK UNIPLM
+
+sendCmd(0x4b, 0xf)	#ACK UNIPLM
+
+sendCmd(0x4b, 0x1)	#ACK UNIPLM
+
+sendCmd(0x4c, 0x0)
+
+sendCmd(0x4c, 0x2)
+
+sendCmd(0x4c, 0xf)	#ACK UNIPLM
+
+sendCmd(0x4c, 0x1)
+
+sendCmd(0x4f, 0x1)	#ACK UNIPLM
+
+sendCmd(0x4f, 0x2)	#ACK UNIPLM
+
+sendCmd(0x4f, 0x0)	#ACK UNIPLM
+
+sendCmd(0x1b, 0x1)	#ACK UNIPLM
+
+sendCmd(0x1b, 0x0)	#ACK UNIPLM
+
+sendKey(0x12, 0x530)	#ACK UNIPLM
+
+sendCmd("Detail", 0x0)
+
+sendKey(0x14, 0x400)
+
+sendKey(0x16, 0x400)
+
+sendCmd(0x4c, 0x1)
+
+sendCmd("Skin Detail", 0x0)
+
+sendCmd("Auto Knee", 0x0)
+
+sendKey(0x32, 0x604)
+
+sendCmd(0x4e, 0x1)	#ACK UNIPLM
+
+sendCmd(0x1b, 0x0)	#ACK UNIPLM
+
+sendCmd(0x1d, 0x0)
+
+sendKey(0x36, 0x114)
+
+sendCmd("black mod", "unmod")
+
+sendCmd(0x4f, 0x0)	#ACK UNIPLM
+
+sendCmd("DNR", 0x0)
+
+sendCmd(0x4b, 0x1)	#ACK UNIPLM
+
+sendCmd(0x52, 0x0)
+
+sendKey(0xf3, 0xf7c)	#ACK UNIPLM
+
+sendKey(0xf2, 0x8)	#ACK UNIPLM
+
+sendKey(0xf2, 0xc)	#ACK UNIPLM
+
+sendKey(0xf2, 0x80c)	#ACK UNIPLM
+
+sendKey(0xf3, 0xc)	#ACK UNIPLM
+
+sendCmd("Gain", "0dB")
+
+sendCmd("Colorbars", 0x0)
+
+sendCmd(0x50, 0x1)
+
+SpecialTransmitt(0)
+
+sendCmd("Call", 0x0)
+
+sendCmd("Gain", "0dB")
+
+sendCmd(0x53, 0x0)
+
+sendCmd(0x08, 0x0)
+
+sendCmd("Full Auto Shooting", 0x0)
+while True:
+    time.sleep(1)
+    sendCmd(0x0,0x1)
+    time.sleep(1)
+    sendCmd(0x0,0x0)
+    time.sleep(1)
+    sendCmd("Gain", "0dB")
+    time.sleep(1)
+    sendCmd("Gain", "3dB")
+    time.sleep(1)
+    sendCmd("Gain", "6dB")
+    time.sleep(1)
+    sendCmd("Gain", "9dB")
+    time.sleep(1)
+    sendCmd("Gain", "12dB")
+    time.sleep(1)
+    sendCmd("Gain", "18dB")
+
