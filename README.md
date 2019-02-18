@@ -285,8 +285,8 @@ such as ON, OFF, incremental values, specific operation modes, ...
 |cmd|0x07|0xa|0b0100|IMPL|Gain|3dB|
 |cmd|0x07|0xe|0b0100|UNIPLM|Gain||
 ||||||||
-|cmd|0x08|0x0|0b0100|IMPL|||
-|cmd|0x08|0x1|0b0100|IMPL|||
+|cmd|0x08|0x0|0b0100|IMPL|Tally PGM||
+|cmd|0x08|0x1|0b0100|IMPL|Tally PGM||
 ||||||||
 |cmd|0x09|0x0|0b0100|IMPL|Call||
 |cmd|0x09|0x1|0b0100|IMPL|Call||
@@ -311,7 +311,11 @@ such as ON, OFF, incremental values, specific operation modes, ...
 ||||||||
 |cmd|0x1c|0x0|0b0100|IMPL|Auto Knee||
 ||||||||
-|cmd|0x1d|0x0|0b0100|IMPL|||
+|cmd|0x1d|0x0|0b0100|IMPL|Add Brightness||
+||||||||
+|cmd|0x47|0x0|0b0100|IMPL|||
+|cmd|0x47|0x1|0b0100|IMPL|||
+|cmd|0x47|0x2|0b0100|IMPL|||
 ||||||||
 |cmd|0x4a|0x0|0b0100|IMPL|DNR||
 ||||||||
@@ -333,19 +337,19 @@ such as ON, OFF, incremental values, specific operation modes, ...
 |cmd|0x4f|0x1|0b0100|UNIPLM|||
 |cmd|0x4f|0x2|0b0100|UNIPLM|||
 ||||||||
-|cmd|0x50|0x1|0b0100|IMPL|||
+|cmd|0x50|0x1|0b0100|IMPL|Full Auto Shooting||
 ||||||||
 |cmd|0x51|0x0|0b0100|UNIPLM|||
 |cmd|0x51|0x1|0b0100|UNIPLM|||
 ||||||||
 |cmd|0x52|0x0|0b0100|IMPL|||
 ||||||||
-|cmd|0x53|0x0|0b0100|IMPL|||
-|cmd|0x53|0x1|0b0100|IMPL|||
+|cmd|0x53|0x0|0b0100|IMPL|Tally PVW||
+|cmd|0x53|0x1|0b0100|IMPL|Tally PVW||
 ||||||||
 |cmd|0x7d|0x1|0b0100|IMPL|||
 ||||||||
-|key|0x00|0x340||IMPL|Iris||
+|key|0x00|0x340||IMPL|Iris|numspace 0x8 to 0x77f|
 ||||||||
 |key|0x02|0x33c||IMPL|||
 ||||||||

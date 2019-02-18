@@ -3,6 +3,8 @@
 import serial
 import csv
 import time
+import numpy as np
+np.set_printoptions(formatter={'int':hex})
 
 key_id = []
 cmd_id = []
@@ -20,7 +22,7 @@ ser.timeout=0.1
 
 await_cam = False
 
-def waitCam():
+def waitCam(verbose=False):
     ack=False
     while(not ack):
         try:
@@ -31,10 +33,11 @@ def waitCam():
             print("waiting for CAM...")
             ack=False
 
-    #if(r == 0xA0):
-    #    print("ACK")
-    #else:
-    #    print("cam reject")
+    if(r == 0xA0):
+        if(verbose):
+            print("\tACK")
+    else:
+        print("\tNACK: "+hex(r))
 
 def SpecialTransmitt(data):
     ser.flushInput()
@@ -63,8 +66,28 @@ def SpecialTransmitt(data):
 
     print("#### Special Transmit end ####")
 
+def autowhite():
+    tmp=ser.timeout
+    ser.timeout=3
+    sendCmd("Auto White", 0x1)
+    ans=ord(ser.read())
+    ser.write(b'\xA0')
+    ser.timeout=tmp
+
+    if(ans==0x90):
+        print("Auto White OK")
+    elif(ans==0x92):
+        print("Auto White failed")
+    elif(ans==0x94):
+        print("Auto White failed: Over Light")
+    elif(ans==0x96):
+        print("Auto White failed: Improper Object")
+    else:
+        print("Unknown Answer...")
+        print(hex(ans))
+
 def sendCmd(cmd, data, special=False):
-    print("sendCmd "+str(cmd)+" = "+str(data))
+    print("sendCmd "+str(cmd)+" = "+str(data)+"\t",end='')
 
     if(type(cmd) is str):
         found = False
@@ -74,7 +97,7 @@ def sendCmd(cmd, data, special=False):
                 cmd=int(x[1],0)
         if( not found ):
             print("unknown string: \""+cmd+"\"")
-            exit()
+            return
 
     if(type(data) is str):
         found = False
@@ -84,8 +107,9 @@ def sendCmd(cmd, data, special=False):
                 data=int(x[2],0)
         if( not found ):
             print("unknown string: \""+data+"\"")
-            exit()
+            return
 
+    print(np.array([cmd, data]),end='')
 
     tx=[data|0x40,cmd,0]
     if(special):
@@ -97,10 +121,10 @@ def sendCmd(cmd, data, special=False):
     waitCam()
     ser.write(tx)
     #time.sleep(0.01)
-    waitCam()
+    waitCam(True)
 
 def sendKey(key, val):
-    print("sendKey "+str(key)+" = "+str(val))
+    print("sendKey "+str(key)+" = "+str(val),end='')
     if(type(key) is str):
         found = False
         for x in key_id:
@@ -131,246 +155,248 @@ def sendKey(key, val):
     waitCam()
     ser.write(tx)
     #time.sleep(0.01)
-    waitCam()
+    waitCam(True)
 
-connected=False
-while(not connected):
-    ser.write(b'\x80')
-    r=ser.read()
-    if(r == b'\x80'):
-        ser.write(b'\xA0')
-        connected=True
-        print("connected")
-    else:
-        print("waiting")
-    time.sleep(0.8)
+def init_cam():
+    connected=False
+    while(not connected):
+        ser.write(b'\x80')
+        r=ser.read()
+        if(r == b'\x80'):
+            ser.write(b'\xA0')
+            connected=True
+            print("connected")
+        else:
+            print("waiting")
+        time.sleep(0.8)
 
-sendCmd(0x7d, 0x1)
+    sendCmd(0x7d, 0x1)
 
-sendCmd("Colorbars", 0x0)
+    sendCmd("Colorbars", 0x0)
 
-sendCmd(0x51, 0x1)	#ACK UNIPLM
+    sendCmd(0x51, 0x1)	#ACK UNIPLM
 
-sendCmd("White Bal", "A")
+    sendCmd("White Bal", "A")
 
-sendCmd("Autoiris", 0x0)
+    sendCmd("Autoiris", 0x0)
 
-sendKey("Iris", 0x340)
+    sendKey("Iris", 0x340)
 
-sendCmd("Autoiris", 0x1)
+    sendCmd("Autoiris", 0x1)
 
-sendKey("Autoiris", 0x340)
+    sendKey("Autoiris", 0x340)
 
-sendCmd("Autoiris", 0x1)
+    sendCmd("Autoiris", 0x1)
 
-sendCmd("Auto White", 0x1,True)#request special transmission
+    sendCmd("Auto White", 0x1,True)#request special transmission
 
 
-sendCmd("White Bal", "Preset")
+    sendCmd("White Bal", "Preset")
 
-sendCmd("Shutter", "off")
+    sendCmd("Shutter", "off")
 
-sendCmd("Shutter", 0x1)	#ACK UNIPLM
+    sendCmd("Shutter", 0x1)	#ACK UNIPLM
 
-sendCmd("Shutter", "1/120")
+    sendCmd("Shutter", "1/120")
 
-sendCmd("Shutter", "1/250")
+    sendCmd("Shutter", "1/250")
 
-sendCmd("Shutter", "1/500")
+    sendCmd("Shutter", "1/500")
 
-sendCmd("Shutter", "1/1000")
+    sendCmd("Shutter", "1/1000")
 
-sendCmd("Shutter", "1/2000")
+    sendCmd("Shutter", "1/2000")
 
-sendCmd("Shutter", 0xf)	#ACK UNIPLM
+    sendCmd("Shutter", 0xf)	#ACK UNIPLM
 
-sendKey(0x56, 0x26e)	#ACK UNIPLM
+    sendKey(0x56, 0x26e)	#ACK UNIPLM
 
-sendCmd("Shutter", "off")
+    sendCmd("Shutter", "off")
 
-sendKey("Black", 0x310)
+    sendKey("Black", 0x310)
 
-sendCmd("Auto White", 0x0,True)#request special transmission
-	#ACK UNIPLM
+    sendCmd("Auto White", 0x0,True)#request special transmission
+    	#ACK UNIPLM
 
-sendCmd("White Bal", 0x0)
+    sendCmd("White Bal", 0x0)
 
-sendCmd("White Bal", "Preset")
+    sendCmd("White Bal", "Preset")
 
-sendCmd("White Bal", "A")
+    sendCmd("White Bal", "A")
 
-sendCmd("White Bal", "B")
+    sendCmd("White Bal", "B")
 
-sendCmd("White Bal", "full auto")
+    sendCmd("White Bal", "full auto")
 
-sendCmd("White Bal", "A")
+    sendCmd("White Bal", "A")
 
-sendKey("Red", 0x328)
+    sendKey("Red", 0x328)
 
-sendKey("Blue", 0x230)
+    sendKey("Blue", 0x230)
 
-sendCmd("White Bal", "B")
+    sendCmd("White Bal", "B")
 
-sendKey("Red", 0x404)
+    sendKey("Red", 0x404)
 
-sendKey("Blue", 0x41c)
+    sendKey("Blue", 0x41c)
 
-sendCmd("White Bal", 0x0)
+    sendCmd("White Bal", 0x0)
 
-sendKey(0x02, 0x33c)
+    sendKey(0x02, 0x33c)
 
-sendKey(0x03, 0x368)
+    sendKey(0x03, 0x368)
 
-sendCmd("White Bal", "Preset")
+    sendCmd("White Bal", "Preset")
 
-sendCmd("Gain", "0dB")
-
-sendCmd("Gain", "6dB")
-
-sendCmd("Gain", "9dB")
-
-sendCmd("Gain", "12dB")
-
-sendCmd("Gain", "18dB")
-
-sendCmd("Gain", 0x5)	#ACK UNIPLM
-
-sendCmd("Gain", 0x6)	#ACK UNIPLM
-
-sendCmd("Gain", 0x8)
-
-sendCmd("Gain", "3dB")
-
-sendCmd("Gain", 0xe)	#ACK UNIPLM
-
-sendKey(0x74, 0x801)	#ACK UNIPLM
-
-sendCmd(0x51, 0x1)	#ACK UNIPLM
-
-sendCmd(0x51, 0x0)	#ACK UNIPLM
-
-sendCmd("Gain", "0dB")
-
-sendCmd(0x08, 0x1)
-
-sendCmd(0x53, 0x1)
-
-sendCmd(0x08, 0x0)
-
-sendCmd(0x53, 0x0)
-
-sendCmd("Call", 0x1)
-
-sendCmd("Call", 0x0)
-
-sendCmd("black mod", "stretch")
-
-sendCmd("black mod", "compress")
-
-sendCmd("black mod", "unmod")
-
-sendCmd(0x4b, 0x0)	#ACK UNIPLM
-
-sendCmd(0x4b, 0x2)	#ACK UNIPLM
-
-sendCmd(0x4b, 0xf)	#ACK UNIPLM
-
-sendCmd(0x4b, 0x1)	#ACK UNIPLM
-
-sendCmd(0x4c, 0x0)
-
-sendCmd(0x4c, 0x2)
-
-sendCmd(0x4c, 0xf)	#ACK UNIPLM
-
-sendCmd(0x4c, 0x1)
-
-sendCmd(0x4f, 0x1)	#ACK UNIPLM
-
-sendCmd(0x4f, 0x2)	#ACK UNIPLM
-
-sendCmd(0x4f, 0x0)	#ACK UNIPLM
-
-sendCmd(0x1b, 0x1)	#ACK UNIPLM
-
-sendCmd(0x1b, 0x0)	#ACK UNIPLM
-
-sendKey(0x12, 0x530)	#ACK UNIPLM
-
-sendCmd("Detail", 0x0)
-
-sendKey(0x14, 0x400)
-
-sendKey(0x16, 0x400)
-
-sendCmd(0x4c, 0x1)
-
-sendCmd("Skin Detail", 0x0)
-
-sendCmd("Auto Knee", 0x0)
-
-sendKey(0x32, 0x604)
-
-sendCmd(0x4e, 0x1)	#ACK UNIPLM
-
-sendCmd(0x1b, 0x0)	#ACK UNIPLM
-
-sendCmd(0x1d, 0x0)
-
-sendKey(0x36, 0x114)
-
-sendCmd("black mod", "unmod")
-
-sendCmd(0x4f, 0x0)	#ACK UNIPLM
-
-sendCmd("DNR", 0x0)
-
-sendCmd(0x4b, 0x1)	#ACK UNIPLM
-
-sendCmd(0x52, 0x0)
-
-sendKey(0xf3, 0xf7c)	#ACK UNIPLM
-
-sendKey(0xf2, 0x8)	#ACK UNIPLM
-
-sendKey(0xf2, 0xc)	#ACK UNIPLM
-
-sendKey(0xf2, 0x80c)	#ACK UNIPLM
-
-sendKey(0xf3, 0xc)	#ACK UNIPLM
-
-sendCmd("Gain", "0dB")
-
-sendCmd("Colorbars", 0x0)
-
-sendCmd(0x50, 0x1)
-
-SpecialTransmitt(0)
-
-sendCmd("Call", 0x0)
-
-sendCmd("Gain", "0dB")
-
-sendCmd(0x53, 0x0)
-
-sendCmd(0x08, 0x0)
-
-sendCmd("Full Auto Shooting", 0x0)
-while True:
-    time.sleep(1)
-    sendCmd(0x0,0x1)
-    time.sleep(1)
-    sendCmd(0x0,0x0)
-    time.sleep(1)
     sendCmd("Gain", "0dB")
-    time.sleep(1)
-    sendCmd("Gain", "3dB")
-    time.sleep(1)
+
     sendCmd("Gain", "6dB")
-    time.sleep(1)
+
     sendCmd("Gain", "9dB")
-    time.sleep(1)
+
     sendCmd("Gain", "12dB")
-    time.sleep(1)
+
     sendCmd("Gain", "18dB")
+
+    sendCmd("Gain", 0x5)	#ACK UNIPLM
+
+    sendCmd("Gain", 0x6)	#ACK UNIPLM
+
+    sendCmd("Gain", 0x8)
+
+    sendCmd("Gain", "3dB")
+
+    sendCmd("Gain", 0xe)	#ACK UNIPLM
+
+    sendKey(0x74, 0x801)	#ACK UNIPLM
+
+    sendCmd(0x51, 0x1)	#ACK UNIPLM
+
+    sendCmd(0x51, 0x0)	#ACK UNIPLM
+
+    sendCmd("Gain", "0dB")
+
+    sendCmd(0x08, 0x1)
+
+    sendCmd(0x53, 0x1)
+
+    sendCmd(0x08, 0x0)
+
+    sendCmd(0x53, 0x0)
+
+    sendCmd("Call", 0x1)
+
+    sendCmd("Call", 0x0)
+
+    sendCmd("black mod", "stretch")
+
+    sendCmd("black mod", "compress")
+
+    sendCmd("black mod", "unmod")
+
+    sendCmd(0x4b, 0x0)	#ACK UNIPLM
+
+    sendCmd(0x4b, 0x2)	#ACK UNIPLM
+
+    sendCmd(0x4b, 0xf)	#ACK UNIPLM
+
+    sendCmd(0x4b, 0x1)	#ACK UNIPLM
+
+    sendCmd(0x4c, 0x0)
+
+    sendCmd(0x4c, 0x2)
+
+    sendCmd(0x4c, 0xf)	#ACK UNIPLM
+
+    sendCmd(0x4c, 0x1)
+
+    sendCmd(0x4f, 0x1)	#ACK UNIPLM
+
+    sendCmd(0x4f, 0x2)	#ACK UNIPLM
+
+    sendCmd(0x4f, 0x0)	#ACK UNIPLM
+
+    sendCmd(0x1b, 0x1)	#ACK UNIPLM
+
+    sendCmd(0x1b, 0x0)	#ACK UNIPLM
+
+    sendKey(0x12, 0x530)	#ACK UNIPLM
+
+    sendCmd("Detail", 0x0)
+
+    sendKey(0x14, 0x400)
+
+    sendKey(0x16, 0x400)
+
+    sendCmd(0x4c, 0x1)
+
+    sendCmd("Skin Detail", 0x0)
+
+    sendCmd("Auto Knee", 0x0)
+
+    sendKey(0x32, 0x604)
+
+    sendCmd(0x4e, 0x1)	#ACK UNIPLM
+
+    sendCmd(0x1b, 0x0)	#ACK UNIPLM
+
+    sendCmd(0x1d, 0x0)
+
+    sendKey(0x36, 0x114)
+
+    sendCmd("black mod", "unmod")
+
+    sendCmd(0x4f, 0x0)	#ACK UNIPLM
+
+    sendCmd("DNR", 0x0)
+
+    sendCmd(0x4b, 0x1)	#ACK UNIPLM
+
+    sendCmd(0x52, 0x0)
+
+    sendKey(0xf3, 0xf7c)	#ACK UNIPLM
+
+    sendKey(0xf2, 0x8)	#ACK UNIPLM
+
+    sendKey(0xf2, 0xc)	#ACK UNIPLM
+
+    sendKey(0xf2, 0x80c)	#ACK UNIPLM
+
+    sendKey(0xf3, 0xc)	#ACK UNIPLM
+
+    sendCmd("Gain", "0dB")
+
+    sendCmd("Colorbars", 0x0)
+
+    sendCmd(0x50, 0x1)
+
+    SpecialTransmitt(0)
+
+    sendCmd("Call", 0x0)
+
+    sendCmd("Gain", "0dB")
+
+    sendCmd(0x53, 0x0)
+
+    sendCmd(0x08, 0x0)
+
+    sendCmd("Full Auto Shooting", 0x0)
+
+#while True:
+#    time.sleep(1)
+#    sendCmd(0x0,0x1)
+#    time.sleep(1)
+#    sendCmd(0x0,0x0)
+#    time.sleep(1)
+#    sendCmd("Gain", "0dB")
+#    time.sleep(1)
+#    sendCmd("Gain", "3dB")
+#    time.sleep(1)
+#    sendCmd("Gain", "6dB")
+#    time.sleep(1)
+#    sendCmd("Gain", "9dB")
+#    time.sleep(1)
+#    sendCmd("Gain", "12dB")
+#    time.sleep(1)
+#    sendCmd("Gain", "18dB")
 
