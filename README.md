@@ -49,7 +49,7 @@ Format: 9600baud 1E8 (8 daten, 1 stop-bit, even-parity)
 Note: there is also the possibility to do CAM to CCU communication, <br />
 which seems to be requested by a special char (0x90)
 
-
+### Startbyte ###
 <table >
 	<thead>
 	<tr >
@@ -68,14 +68,17 @@ which seems to be requested by a special char (0x90)
         <td >  7  </td>
 	</tr>
 	<tr >
-		<th > Purpose </th>
-        <td >  always 1 </td>
-        <td colspan="4"> 0 </td>
-        <td colspan="3"> number of data bytes </td>
+		<th> Purpose </th>
+        <td> Transmission Start </td>
+        <td colspan="2"> 0 </td>
+        <td> Special </td>
+        <td colspan="4"> data </td>
 	</tr>
 </table>
+On normal (non special) transmission: treat data as number of bytes to be transmitted.<br />
+If Special bit is set: data is the payload for the request this transmission was requested with. (see 3 byte data bitflags)
 
-##### Speculative interpretation of ACK byte: #####
+### Speculative interpretation of ACK byte: ###
 <table>
    <tr>
     <th colspan="9">ACK byte</th>
@@ -106,8 +109,8 @@ which seems to be requested by a special char (0x90)
 0xA0 => transmission understood, everything OK<br />
 0xF2 => transmission understood, but Feature not implemented
 
-##### Data bytes: #####
-4 Byte:
+### Data bytes: ###
+#### 4 Byte: ####
 
 <table >
 	<thead>
@@ -165,8 +168,7 @@ which seems to be requested by a special char (0x90)
 	</tr>
 </table>
 
-3 Byte:
-
+#### 3 Byte: ####
 
 <table >
 	<thead>
@@ -216,14 +218,15 @@ which seems to be requested by a special char (0x90)
 	</tr>
 </table>
 
-Flags are mostly set to 0x4, <br />
-but sometimes 0x6
-
+Bitflags[2] = apply setting <br />
+Bitflags[1] = request special transmission
                                                                        
 
-### Funktionen ###
+### Features ###
 
-from cmds.csv
+This table was taken from cmds.csv wich was made by capturing the init sequence of CCU and CAM.<br />
+With this handshake all available/unavailable Features should be negotiated.
+
 ####  cmd type ####
 cmd => 3 byte<br />
 key => 4 byte
