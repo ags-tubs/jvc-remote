@@ -1,6 +1,16 @@
 JVC Remote
 ==========
 
+### Usage ###
+
+For interactive use inkvoke the script like this:<br />
+`python3 -i listen.py`<br />
+then you can call functions as follows:<br />
+`>>>initCam()`<br />
+`>>>sendCmd("Autoiris", 0)`<br />
+`>>>sendKey("Iris", 127)`<br />
+
+
 ### Pinout ###
 
 [26pin_studio_10pin_remote_6pin_tally.xls](cable_doku/26pin_studio_10pin_remote_6pin_tally.xls)
