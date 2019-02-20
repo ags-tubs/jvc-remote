@@ -10,7 +10,6 @@ then you can call functions as follows:<br />
 `>>>sendCmd("Autoiris", 0)`<br />
 `>>>sendKey("Iris", 127)`<br />
 
-
 ### Pinout ###
 
 [26pin_studio_10pin_remote_6pin_tally.xls](cable_doku/26pin_studio_10pin_remote_6pin_tally.xls)
@@ -173,7 +172,8 @@ If Special bit is set: data is the payload for the request this transmission was
 	<tr >
 		<th > Purpose </th>
         <td  colspan="12"> key </td>
-        <td  colspan="12"> value </td>
+        <td  > 0 </td>
+        <td  colspan="11"> value </td>
         <td  colspan="8"> checksum </td>
 	</tr>
 </table>
