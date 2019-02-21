@@ -4,7 +4,7 @@ JVC Remote
 ### Usage ###
 
 For interactive use inkvoke the script like this:<br />
-`python3 -i listen.py`<br />
+`python3 -i remote.py`<br />
 then you can call functions as follows:<br />
 `>>>initCam()`<br />
 `>>>sendCmd("Autoiris", 0)`<br />
