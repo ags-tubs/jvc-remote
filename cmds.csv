@@ -1,4 +1,3 @@
-cmd type,key,value,bitfield,cam response,topic,setting
 cmd,0x00,0x0,0b0100,IMPL,Colorbars,
 ,,,,,,
 cmd,0x01,0x0,0b0100,IMPL,Detail,
@@ -6,7 +5,7 @@ cmd,0x01,0x0,0b0100,IMPL,Detail,
 cmd,0x02,0x0,0b0100,IMPL,Autoiris,
 cmd,0x02,0x1,0b0100,IMPL,Autoiris,
 ,,,,,,
-cmd,0x03,0x0,0b0100,IMPL,White Bal,
+cmd,0x03,0x0,0b0100,IMPL,White Bal,Manual
 cmd,0x03,0x1,0b0100,IMPL,White Bal,Preset
 cmd,0x03,0x2,0b0100,IMPL,White Bal,A
 cmd,0x03,0x3,0b0100,IMPL,White Bal,B

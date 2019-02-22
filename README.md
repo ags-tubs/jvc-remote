@@ -1,15 +1,6 @@
 JVC Remote
 ==========
 
-### Usage ###
-
-For interactive use inkvoke the script like this:<br />
-`python3 -i listen.py`<br />
-then you can call functions as follows:<br />
-`>>>initCam()`<br />
-`>>>sendCmd("Autoiris", 0)`<br />
-`>>>sendKey("Iris", 127)`<br />
-
 ### Pinout ###
 
 [26pin_studio_10pin_remote_6pin_tally.xls](cable_doku/26pin_studio_10pin_remote_6pin_tally.xls)
@@ -116,8 +107,7 @@ If Special bit is set: data is the payload for the request this transmission was
 </table>
 
 0xA0 => transmission understood, everything OK<br />
-0xF2 => transmission understood, but Feature not implemented<br />
-0xF0 => ??? (reproduce for by sendKey("Iris", 0x090))
+0xF2 => transmission understood, but Feature not implemented
 
 ### Data bytes: ###
 #### 4 Byte: ####
@@ -173,9 +163,7 @@ If Special bit is set: data is the payload for the request this transmission was
 	<tr >
 		<th > Purpose </th>
         <td  colspan="12"> key </td>
-        <td  colspan="4"> value </td>
-        <td  > 0 </td>
-        <td  colspan="7"> value </td>
+        <td  colspan="12"> value </td>
         <td  colspan="8"> checksum </td>
 	</tr>
 </table>
@@ -277,7 +265,7 @@ such as ON, OFF, incremental values, specific operation modes, ...
 |cmd|0x02|0x0|0b0100|IMPL|Autoiris||
 |cmd|0x02|0x1|0b0100|IMPL|Autoiris||
 ||||||||
-|cmd|0x03|0x0|0b0100|IMPL|White Bal||
+|cmd|0x03|0x0|0b0100|IMPL|White Bal|Manual|
 |cmd|0x03|0x1|0b0100|IMPL|White Bal|Preset|
 |cmd|0x03|0x2|0b0100|IMPL|White Bal|A|
 |cmd|0x03|0x3|0b0100|IMPL|White Bal|B|
