@@ -780,4 +780,28 @@ F 3 "" H 3450 2150 50  0001 C CNN
 	1    3450 2150
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J?
+U 1 1 5C708475
+P 8950 4500
+F 0 "J?" H 9030 4492 50  0000 L CNN
+F 1 "Conn_01x02" H 9030 4401 50  0000 L CNN
+F 2 "" H 8950 4500 50  0001 C CNN
+F 3 "~" H 8950 4500 50  0001 C CNN
+	1    8950 4500
+	1    0    0    -1  
+$EndComp
+Text GLabel 8750 4600 0    50   Input ~ 0
+TallyOut
+$Comp
+L power:VCC #PWR?
+U 1 1 5C70866A
+P 8750 4500
+F 0 "#PWR?" H 8750 4350 50  0001 C CNN
+F 1 "VCC" V 8768 4627 50  0000 L CNN
+F 2 "" H 8750 4500 50  0001 C CNN
+F 3 "" H 8750 4500 50  0001 C CNN
+	1    8750 4500
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
