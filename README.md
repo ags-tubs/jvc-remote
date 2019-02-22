@@ -116,7 +116,8 @@ If Special bit is set: data is the payload for the request this transmission was
 </table>
 
 0xA0 => transmission understood, everything OK<br />
-0xF2 => transmission understood, but Feature not implemented
+0xF2 => transmission understood, but Feature not implemented<br />
+0xF0 => ??? (reproduce for by sendKey("Iris", 0x090))
 
 ### Data bytes: ###
 #### 4 Byte: ####
@@ -172,8 +173,9 @@ If Special bit is set: data is the payload for the request this transmission was
 	<tr >
 		<th > Purpose </th>
         <td  colspan="12"> key </td>
+        <td  colspan="4"> value </td>
         <td  > 0 </td>
-        <td  colspan="11"> value </td>
+        <td  colspan="7"> value </td>
         <td  colspan="8"> checksum </td>
 	</tr>
 </table>
@@ -292,6 +294,7 @@ such as ON, OFF, incremental values, specific operation modes, ...
 |cmd|0x07|0x5|0b0100|UNIPLM|Gain||
 |cmd|0x07|0x6|0b0100|UNIPLM|Gain||
 |cmd|0x07|0x8|0b0100|IMPL|Gain||
+|cmd|0x07|0x8|0b0100|IMPL|Gain|ALC|
 |cmd|0x07|0xa|0b0100|IMPL|Gain|3dB|
 |cmd|0x07|0xe|0b0100|UNIPLM|Gain||
 ||||||||
@@ -312,20 +315,25 @@ such as ON, OFF, incremental values, specific operation modes, ...
 |cmd|0x0c|0x6|0b0100|IMPL|Shutter|1/2000|
 |cmd|0x0c|0xf|0b0100|UNIPLM|Shutter||
 ||||||||
-|cmd|0x0f|0x0|0b0100|IMPL|black mod|unmod|
-|cmd|0x0f|0x1|0b0100|IMPL|black mod|stretch|
-|cmd|0x0f|0x2|0b0100|IMPL|black mod|compress|
+|cmd|0x0f|0x0|0b0100|IMPL|Black Toe|unmod|
+|cmd|0x0f|0x1|0b0100|IMPL|Black Toe|stretch|
+|cmd|0x0f|0x2|0b0100|IMPL|Black Toe|compress|
 ||||||||
 |cmd|0x1b|0x0|0b0100|UNIPLM|||
 |cmd|0x1b|0x1|0b0100|UNIPLM|||
 ||||||||
 |cmd|0x1c|0x0|0b0100|IMPL|Auto Knee||
 ||||||||
-|cmd|0x1d|0x0|0b0100|IMPL|Add Brightness||
+|cmd|0x1d|0x0|0b0100|IMPL|Gamma||
+|cmd|0x1d|0x1|0b0100|IMPL|Gamma||
+|cmd|0x1d|0x2|0b0100|IMPL|Gamma||
+|cmd|0x1d|0x3|0b0100|IMPL|Gamma||
+|cmd|0x1d|0x4|0b0100|IMPL|Gamma||
 ||||||||
-|cmd|0x47|0x0|0b0100|IMPL|||
-|cmd|0x47|0x1|0b0100|IMPL|||
-|cmd|0x47|0x2|0b0100|IMPL|||
+|cmd|0x47|0x0|0b0100|IMPL|GENLOCK SC|0|
+|cmd|0x47|0x1|0b0100|IMPL|GENLOCK SC|90|
+|cmd|0x47|0x2|0b0100|IMPL|GENLOCK SC|180|
+|cmd|0x47|0x3|0b0100|IMPL|GENLOCK SC|270|
 ||||||||
 |cmd|0x4a|0x0|0b0100|IMPL|DNR||
 ||||||||
@@ -357,15 +365,17 @@ such as ON, OFF, incremental values, specific operation modes, ...
 |cmd|0x53|0x0|0b0100|IMPL|Tally PVW||
 |cmd|0x53|0x1|0b0100|IMPL|Tally PVW||
 ||||||||
+|cmd|0x7c|0x1|0b0100|IMPL|||
+||||||||
 |cmd|0x7d|0x1|0b0100|IMPL|||
 ||||||||
-|key|0x00|0x340||IMPL|Iris|numspace 0x8 to 0x77f|
+|key|0x00|0x340||IMPL|Iris||
 ||||||||
-|key|0x02|0x33c||IMPL|||
+|key|0x02|||IMPL|Gain R||
 ||||||||
-|key|0x03|0x368||IMPL|||
+|key|0x03|||IMPL|Gain B||
 ||||||||
-|key|0x06|0x310||IMPL|Black||
+|key|0x06|||IMPL|Master Black||
 ||||||||
 |key|0x12|0x530||UNIPLM|||
 ||||||||
@@ -381,13 +391,18 @@ such as ON, OFF, incremental values, specific operation modes, ...
 ||||||||
 |key|0x32|0x604||IMPL|||
 ||||||||
-|key|0x36|0x114||IMPL|||
+|key|0x36|0x114||IMPL|Gamma Master||
+||||||||
+|key|0x37|0x114||IMPL|Gamma G||
 ||||||||
 |key|0x40|0x340||IMPL|Autoiris||
 ||||||||
 |key|0x56|0x26e||UNIPLM|||
 ||||||||
 |key|0x74|0x801||UNIPLM|||
+||||||||
+|key|0xb4|0x801||UNIPLM|Genlock H Phase 1||
+|key|0xb5|0x801||UNIPLM|Genlock H Phase 2||
 ||||||||
 |key|0xf2|0x008||UNIPLM|||
 |key|0xf2|0x00c||UNIPLM|||
