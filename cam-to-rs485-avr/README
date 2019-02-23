@@ -1,0 +1,7 @@
+This little subproject is an adaptor that can be used to establish a long connection to a jvc camera.
+No protocol conversion is done. Additionally there is a tally out that is switched by listening to the "Tally PGM" command
+
+an example setup:
+
+        PC        => USB to 485 converter => XLR-Cable => 485 to JVC adapter => JVC camera
+running remote.py

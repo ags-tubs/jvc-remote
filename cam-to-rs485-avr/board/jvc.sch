@@ -15,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L jvc-rescue:ATtiny2313-20SU-MCU_Microchip_ATtiny U3
+L jvc-rescue:ATtiny2313-20SU-MCU_Microchip_ATtiny-jvc-rescue U3
 U 1 1 5C6F4FFC
 P 5550 3850
 F 0 "U3" H 5550 5128 50  0000 C CNN
@@ -865,7 +865,7 @@ U 1 1 5C708CB1
 P 3400 4950
 F 0 "U1" H 3400 5628 50  0000 C CNN
 F 1 "MAX485E" H 3400 5537 50  0000 C CNN
-F 2 "" H 3400 4250 50  0001 C CNN
+F 2 "Package_DIP:DIP-8_W7.62mm_Socket" H 3400 4250 50  0001 C CNN
 F 3 "https://datasheets.maximintegrated.com/en/ds/MAX1487E-MAX491E.pdf" H 3400 5000 50  0001 C CNN
 	1    3400 4950
 	-1   0    0    -1  
@@ -894,5 +894,5 @@ Wire Wire Line
 	2800 4850 2550 4850
 Connection ~ 2800 4850
 Wire Wire Line
-	3400 5600 3400 5550
+	3400 5550 3400 5600
 $EndSCHEMATC
