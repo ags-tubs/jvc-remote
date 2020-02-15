@@ -1,5 +1,5 @@
 TARGET  = main
-FILES   = main
+FILES   = main uart
 MCU     = attiny10
 PROGC	= t10
 CC      = avr-gcc
