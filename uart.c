@@ -19,18 +19,20 @@ void uart_init(){
 }
 
 void tx(){
-    if(tx_bit_state == 0){
-        PORTB &= ~(1 << TX_PIN);
-    }
-    else if(tx_bit_state < 9)
-        PORTB = ((tx_byte >> (tx_bit_state-1)) & 0x01)<<TX_PIN;
-    else if(tx_bit_state == 9){
-        PORTB |= (1 << TX_PIN);
-        tx_bit_state=9;
-    }
-    else if(tx_bit_state == 10){
-        tx_busy = 0;
-        return;
+    switch(tx_bit_state){
+        case UART_START_BIT:
+            PORTB &= ~(1 << TX_PIN);
+            break;
+        case UART_DATA_FIRST_BIT ... UART_DATA_LAST_BIT:
+            PORTB = ((tx_byte >> (tx_bit_state-1)) & 0x01)<<TX_PIN;
+            break;
+        case UART_STOP_BIT:
+            PORTB |= (1 << TX_PIN);
+            break;
+        case UART_STOP_BIT+1:
+            tx_busy = 0;
+            return;
+            break;
     }
     tx_bit_state++;
 }

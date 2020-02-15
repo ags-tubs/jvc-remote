@@ -16,9 +16,12 @@ void setup(){
 int main(void){
     setup();
     for(;;){
-        uart_putchar('a');
-        uart_putchar('b');
-        uart_putchar('c');
+        uart_putchar('t');
+        uart_putchar('e');
+        uart_putchar('s');
+        uart_putchar('t');
+        uart_putchar('\n');
+        uart_putchar('\r');
         _delay_ms(1000);
     }
 }
