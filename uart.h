@@ -1,18 +1,24 @@
 #ifndef _UART_H_
 #define _UART_H_
 
+/* User Config */
 #define TX_PIN 2
+#define RX_PIN 1
+
+#define UART_BAUD 9600
+#define UART_PARITY_MODE PARITY_EVEN
+#define UART_DATA_LAST_BIT 8
+/* User Config End */
+
+#define UART_TIMER_VAL F_CPU/UART_BAUD
+// 8MHz / 833 = 9603 baud
 
 #define PARITY_NONE 0
 #define PARITY_EVEN 1
 #define PARITY_ODD 2
-/* Parity Mode */
-#define UART_PARITY_MODE PARITY_EVEN
-
 
 #define UART_START_BIT 0
 #define UART_DATA_FIRST_BIT 1
-#define UART_DATA_LAST_BIT 8
 
 #if UART_PARITY_MODE == PARITY_NONE
 #define UART_STOP_BIT UART_DATA_LAST_BIT+1
@@ -23,5 +29,7 @@
 
 int uart_putchar(char c);
 void uart_init();
+
+extern volatile uint8_t rx_byte;
 
 #endif
