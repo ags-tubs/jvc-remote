@@ -20,8 +20,8 @@ int main(void){
         uart_putchar('e');
         uart_putchar('s');
         uart_putchar('t');
-        uart_putchar('\n');
         uart_putchar('\r');
+        uart_putchar('\n');
         _delay_ms(1000);
     }
 }

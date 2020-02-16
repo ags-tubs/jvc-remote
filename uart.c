@@ -19,6 +19,9 @@ void uart_init(){
 }
 
 void tx(){
+#if UART_PARITY_MODE != PARITY_NONE
+    uint8_t high_bits = 0;
+#endif
     switch(tx_bit_state){
         case UART_START_BIT:
             PORTB &= ~(1 << TX_PIN);
@@ -26,6 +29,18 @@ void tx(){
         case UART_DATA_FIRST_BIT ... UART_DATA_LAST_BIT:
             PORTB = ((tx_byte >> (tx_bit_state-1)) & 0x01)<<TX_PIN;
             break;
+#if UART_PARITY_MODE == PARITY_EVEN
+        case UART_PARITY_BIT:
+            for(uint8_t i=0;i<8;i++)
+                if(tx_byte & (1<<i))
+                    high_bits++;
+
+            if(high_bits&0x01)
+                PORTB |= (1 << TX_PIN);
+            else
+                PORTB &= ~(1 << TX_PIN);
+            break;
+#endif
         case UART_STOP_BIT:
             PORTB |= (1 << TX_PIN);
             break;
@@ -38,9 +53,7 @@ void tx(){
 }
 
 int uart_putchar(char c){
-    PORTB |= (1<<1);
     while(tx_busy);
-    PORTB &= ~(1<<1);
     tx_busy = 1;
     tx_byte = c;
     tx_bit_state = 0;
