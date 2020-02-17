@@ -1,0 +1,9 @@
+simple adaptor for getting tally signals into a jvc camera.
+Tally-System must be set to 'Studio' in the camera settings.
+cable-info in the above directory.
+
+instead of the optocopler an LDR can be used for grabbing signals from
+other tally-lamps (ex.: BMD Camera Converter)
+
+Hardware and Software is in early prototype state.
+(Works most of the time; but encountering deadlocks on rare occasions)
