@@ -27,8 +27,9 @@
 #define UART_STOP_BIT UART_DATA_LAST_BIT+2
 #endif
 
-int uart_putchar(char c);
 void uart_init();
+void uart_putchar(char c);
+void set_rx_handler(void (* handler)(uint8_t, uint8_t));
 
 extern volatile uint8_t rx_byte;
 

@@ -10,6 +10,8 @@ volatile uint8_t rx_byte = 0;
 volatile uint8_t rx_bit_state = 0;
 volatile uint8_t rx_error = 0;
 
+void (* rx_handler)(uint8_t c, uint8_t error);
+
 void uart_init(){
     DDRB |= (1 << TX_PIN) | (1<<0);
     PORTB |= (1 << TX_PIN);
@@ -27,12 +29,15 @@ void uart_init(){
     PCMSK |= (1 << RX_PIN);
 }
 
-int uart_putchar(char c){
+void set_rx_handler(void (* handler)(uint8_t, uint8_t)){
+    rx_handler = handler;
+}
+
+void uart_putchar(char c){
     while(tx_busy);
     tx_busy = 1;
     tx_byte = c;
     tx_bit_state = 0;
-    return 0;
 }
 
 void tx(){
@@ -85,14 +90,19 @@ void rx(){
             if(PINB & (1 << RX_PIN))
                 rx_byte |= (1 << (rx_bit_state-1));
             break;
+            // TODO handle parity and set rx_error
         case UART_STOP_BIT:
             rx_bit_state=0;
 
             /* diable RX routine */
             TIMSK0 &= ~(1 << OCIE0B);
 
-            /* clear old flag an wait for new falling edge */
+            /* wait for new falling edge */
             PCMSK |= (1 << RX_PIN);
+
+            if (rx_handler != 0) {
+                rx_handler(rx_byte, rx_error);
+            }
 
             return;
             break;
@@ -120,4 +130,5 @@ ISR(PCINT0_vect){
         /* enable RX routine */
         TIMSK0 |= (1 << OCIE0B);
     }
+
 }
