@@ -50,37 +50,26 @@ int main(void){
     setup();
     set_rx_handler(&rx_action);
 
-    for(;;){
-        //uart_putchar(wait_rx());
+    uint8_t tally_in;
+    uint8_t tally_in_old=2;
 
+    for(;;){
         while(!connected){
             uart_putchar(0x80);
             if(wait_rx() == 0x80){
                 uart_putchar(0xA0);
                 connected = 1;
             }
-            //else
-            //    disconnect();
-            //_delay_ms(10);
             send_cmd(0,0);
             send_cmd(0x7d,0x01);
             special_xfer(0);
         }
         if(connected){
-            send_cmd(0x00,0x01);
-            _delay_ms(1000);
-            send_cmd(0x00,0x00);
-            _delay_ms(1000);
+            tally_in = PINB & (1 << 0);
+            if(tally_in != tally_in_old)
+                send_cmd(0x08, tally_in_old);
+            tally_in_old = tally_in;
         }
-        //send_cmd(0x08,0x00);
-
-        //uart_putchar('t');
-        //uart_putchar('e');
-        //uart_putchar('s');
-        //uart_putchar('t');
-        //uart_putchar('\r');
-        //uart_putchar('\n');
-        //_delay_ms(1000);
     }
 }
 

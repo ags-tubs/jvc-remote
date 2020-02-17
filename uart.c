@@ -13,7 +13,7 @@ volatile uint8_t rx_error = 0;
 void (* rx_handler)(uint8_t c, uint8_t error);
 
 void uart_init(){
-    DDRB |= (1 << TX_PIN) | (1<<0);
+    DDRB |= (1 << TX_PIN);
     PORTB |= (1 << TX_PIN);
 
     // no prescaler, count up to OCR0A
